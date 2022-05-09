@@ -11,7 +11,7 @@
 #include "croutine.h"
 #include "FreeRTOSConfig.h"
 
-#define NUM_AVG 100
+#define SAMPLE_RATE 100
 void init(void);
 void curlTask(void *pvParameters);
 void boomTask(void *pvParameters);
