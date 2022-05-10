@@ -76,7 +76,7 @@ void main(void) {
     init();
     
 	/* Create the test tasks defined within this file. */
-//	xTaskCreate( boomTask, "Boom", 512, NULL, 1, NULL );
+	xTaskCreate( boomTask, "Boom", 512, NULL, 1, NULL );
     xTaskCreate( curlTask, "Curl", 512, NULL, 1, NULL );
 	/* Finally start the scheduler. */
 	vTaskStartScheduler();
