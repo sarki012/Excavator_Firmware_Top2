@@ -12,6 +12,7 @@
 #include "FreeRTOSConfig.h"
 
 #define SAMPLE_RATE 100
+#define LOOPS 2000
 void init(void);
 void curlTask(void *pvParameters);
 void boomTask(void *pvParameters);
