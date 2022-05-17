@@ -5,7 +5,7 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 
-volatile extern char rxval[20];
+volatile extern char rxval[40];
 void curlTask( void *pvParameters )
 {
     int  i = 0, j = 0, k = 0, sampleCount = 0, curlAvg = 0;
@@ -15,7 +15,7 @@ void curlTask( void *pvParameters )
     PHASE3 = 2303;
     while(1)
     {
-        for(i = 0; i < 15; i++)
+        for(i = 0; i < 35; i++)
         {
             if(rxval[i] == 'c')
             {
