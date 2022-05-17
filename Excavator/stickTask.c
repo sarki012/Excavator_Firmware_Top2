@@ -1,5 +1,5 @@
 /*
- * File:   boom_task.c
+ * File:   stickTask.c
  * Author: Erik
  *
  * Created on April 29, 2022, 4:43 PM
@@ -12,47 +12,47 @@
 #include "main.h"
 
 volatile extern char rxval[40];
-void boomTask( void *pvParameters )
+void stickTask( void *pvParameters )
 {
     int  i = 0, j = 0, k = 0, sampleCount = 0;
-    int boom = 0, boomPrev = 0;
+    int stick = 0, stickPrev = 0;
     int m = 0;
-    PHASE1 = 2303;
+    PHASE2 = 2303;
     while(1)
     {
         for(i = 0; i < 35; i++)
         {
-            if(rxval[i] == 'b')
+            if(rxval[i] == 's')
             {
-                boom = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
+                stick = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
                 //Motor Arithmitic Here
                 //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
                 //PHASE is always 2303 to give a rising edge every 20ms
                 //Max Duty Cycle is PDC = 253
                 //Neutral Duty Cycle is 173
                 //Min Duty Cycle is PDC = 92
-                if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
+                if(sampleCount == SAMPLE_RATE)     //We're only going to take the SAMPLE_RATE sample
                 {
-                    if(boomPrev <= boom)        //Direction
+                    if(stickPrev <= stick)        //Direction
                     {
-                        //Increment Duty Cycle from the previous boom to boom
-                        for(m = boomPrev; m <= boom; m++)   
+                        //Increment Duty Cycle from the previous stickPrev to stick
+                        for(m = stickPrev; m <= stick; m++)   
                         {
-                            PDC1 = (173 - m);
+                            PDC2 = (173 - m);
                             for(j = 0; j < LOOPS; j++);
                         }
-                        boomPrev = boom;        //Save the previous value of boom
+                        stickPrev = stick;        //Save the previous value of stick
                         sampleCount = 0;
                     }
-                    else if(boomPrev > boom)    //Reverse
+                    else if(stickPrev > stick)    //Reverse
                     {
                         //Increment Duty Cycle from the previous boom to boom
-                        for(k = boomPrev; k > boom; k--)
+                        for(k = stickPrev; k > stick; k--)
                         {
-                            PDC1 = (173 - k);
+                            PDC2 = (173 - k);
                             for(j = 0; j < LOOPS; j++);
                         }
-                        boomPrev = boom;        //Save the previous value of boom
+                        stickPrev = stick;        //Save the previous value of boom
                         sampleCount = 0;
                     } 
                 }
@@ -62,4 +62,3 @@ void boomTask( void *pvParameters )
         }
     }    
 }
-
