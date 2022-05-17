@@ -11,11 +11,12 @@
 #include "croutine.h"
 #include "FreeRTOSConfig.h"
 
-#define SAMPLE_RATE 100
-#define LOOPS 2000
+#define SAMPLE_RATE 20
+#define LOOPS 2500
 void init(void);
 void curlTask(void *pvParameters);
 void boomTask(void *pvParameters);
+void stickTask(void *pvParameters);
 int charToInt(char digit2, char digit1, char digit0);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
