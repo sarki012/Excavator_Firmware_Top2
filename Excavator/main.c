@@ -49,14 +49,14 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 
-volatile char rxval[40];
+volatile char rxval[50];
 int x = 0;
 void __attribute__((__interrupt__, auto_psv)) _U2RXInterrupt(void)             
 {
     IFS1bits.U2RXIF = 0;
     rxval[x] = U2RXREG;
     x++;
-    if(x == 40)
+    if(x == 50)
     {  
         x = 0;
     }
@@ -69,16 +69,17 @@ void __attribute__((__interrupt__, auto_psv)) _DefaultInterrupt(void)
 
 void main(void) {
     int i = 0;
-    for(i = 0; i < 40; i++)
+    for(i = 0; i < 50; i++)
     {
         rxval[i] = 0;
     }
     init();
     
 	/* Create the test tasks defined within this file. */
-	xTaskCreate( boomTask, "Boom", 512, NULL, 1, NULL );
-    xTaskCreate( curlTask, "Curl", 512, NULL, 1, NULL );
-    xTaskCreate( stickTask, "Stick", 512, NULL, 1, NULL );
+	xTaskCreate( boomThread, "Boom", 512, NULL, 1, NULL );
+    xTaskCreate( curlThread, "Curl", 512, NULL, 1, NULL );
+    xTaskCreate( stickThread, "Stick", 512, NULL, 1, NULL );
+    xTaskCreate( radioThread, "Radio", 512, NULL, 1, NULL );
 	/* Finally start the scheduler. */
 	vTaskStartScheduler();
 
