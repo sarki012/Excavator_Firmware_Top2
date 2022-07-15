@@ -15,7 +15,7 @@ volatile extern char rxval[50];
 void boomThread( void *pvParameters )
 {
     int  i = 0, j = 0, k = 0, sampleCount = 0;
-    int boom = 0, boomPrev = 0;
+    int boom = 0, boomPrev = 0, boomDelta = 0, numDelayLoops = 0;
     int m = 0;
     int p = 0, q = 0, breakTime = 0;
     int kPrev = 0, mPrev = 0;
@@ -26,7 +26,7 @@ void boomThread( void *pvParameters )
         {
             if(rxval[i] == 'b')
             {
-                boom = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
+                boom = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
                 //Motor Arithmitic Here
                 //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
                 //PHASE is always 2303 to give a rising edge every 20ms
@@ -37,6 +37,7 @@ void boomThread( void *pvParameters )
                 {
                     if(boomPrev <= boom)        //Direction
                     {
+                        boomDelta = boom - boomPrev;
                         //Increment Duty Cycle from the previous boom to boom
                         for(m = boomPrev; m <= boom; m++)   
                         {
@@ -53,9 +54,9 @@ void boomThread( void *pvParameters )
                                 boomPrev = m;
                                 break;
                             }
-                            PDC1 = (173 - m);
-                            for(j = 0; j < LOOPS; j++);
-                            
+                            //PDC1 = (173 - m);
+                            PDC1 = (int)(173 - .14*m);
+                            delay(LOOPS);
                         }
                         if(breakTime == 0)
                         {
@@ -85,8 +86,9 @@ void boomThread( void *pvParameters )
                                 boomPrev = k;
                                 break;
                             }
-                            PDC1 = (173 - k);
-                            for(j = 0; j < LOOPS; j++);
+                          //  PDC1 = (173 - k);
+                            PDC1 = (int)(173 - .14*k);
+                            delay(LOOPS);
                         }
                         if(breakTime == 0)
                         {

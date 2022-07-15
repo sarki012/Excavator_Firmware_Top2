@@ -19,7 +19,7 @@ void curlThread( void *pvParameters )
         {
             if(rxval[i] == 'c')
             {
-                curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
+                curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
                 //Motor Arithmitic Here
                 //PHASE3 and PDC3 are for PWM3L, the bucket curl motor
                 //PHASE is always 2303 to give a rising edge every 20ms
@@ -33,8 +33,9 @@ void curlThread( void *pvParameters )
                         //Increment Duty Cycle from the previous curl to curl
                         for(m = curlPrev; m <= curl; m++)   
                         {
-                            PDC3 = (173 + m);
-                            for(j = 0; j < LOOPS; j++);
+                          //  PDC3 = (173 + m);
+                            PDC3 = (int)(173 + .14*m);
+                            delay(LOOPS_CURL);
                         }
                         curlPrev = curl;        //Save the previous value of curl
                         sampleCount = 0;
@@ -44,8 +45,9 @@ void curlThread( void *pvParameters )
                         //Increment Duty Cycle from the previous curl to curl
                         for(k = curlPrev; k > curl; k--)
                         {
-                            PDC3 = (173 + k);
-                            for(j = 0; j < LOOPS; j++);
+                           // PDC3 = (173 + k);
+                            PDC3 = (int)(173 + .14*k);
+                            delay(LOOPS_CURL);
                         }
                         curlPrev = curl;        //Save the previous value of curl
                         sampleCount = 0;
