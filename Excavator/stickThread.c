@@ -24,7 +24,7 @@ void stickThread( void *pvParameters )
         {
             if(rxval[i] == 's')
             {
-                stick = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
+                stick = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
                 //Motor Arithmitic Here
                 //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
                 //PHASE is always 2303 to give a rising edge every 20ms
@@ -51,8 +51,9 @@ void stickThread( void *pvParameters )
                                 stickPrev = m;
                                 break;
                             }
-                            PDC2 = (173 - m);
-                            for(j = 0; j < LOOPS; j++);
+                          //  PDC2 = (173 - m);
+                            PDC2 = (int)(173 - .14*m);
+                            delay(LOOPS);
                         }
                         if(breakTime == 0)
                         {
@@ -82,8 +83,9 @@ void stickThread( void *pvParameters )
                                 stickPrev = k;
                                 break;
                             }
-                            PDC2 = (173 - k);
-                            for(j = 0; j < LOOPS; j++);
+                           // PDC2 = (173 - k);
+                            PDC2 = (int)(173 - .14*k);
+                            delay(LOOPS);
                         }
                         if(breakTime == 0)
                         {

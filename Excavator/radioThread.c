@@ -21,45 +21,54 @@ void radioThread( void *pvParameters )
         {
             if(rxval[i] == 'l')
             {
-                U1TXREG = 'l';
+                U1TXREG = 'l';              //Left Track
+                while(!U1STAbits.TRMT);     
+                i++;
+                U1TXREG = rxval[i];         //+/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];
-                while(!U1STAbits.TRMT);
-                i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //Digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //Digit1
+                while(!U1STAbits.TRMT); 
+                i++;
+                U1TXREG = rxval[i];         //Digit0
                 while(!U1STAbits.TRMT); 
             }
             else if(rxval[i] == 'r')
             {
-                U1TXREG = 'r';
+                U1TXREG = 'r';              //Right Track
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //+/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //Digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //Digit1
+                while(!U1STAbits.TRMT); 
+                i++;
+                U1TXREG = rxval[i];         //Digit0
                 while(!U1STAbits.TRMT); 
             }
             else if(rxval[i] == 'o')
             {
-                U1TXREG = 'o';
+                U1TXREG = 'o';              //Orbit (Rotate)
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //+/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];
+                U1TXREG = rxval[i];         //Digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];
-                while(!U1STAbits.TRMT); 
+                U1TXREG = rxval[i];         //Digit1
+                while(!U1STAbits.TRMT);  
+                i++;
+                U1TXREG = rxval[i];         //Digit0
+                while(!U1STAbits.TRMT);
             }
         }
     }    
