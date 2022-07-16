@@ -70,6 +70,16 @@ void radioThread( void *pvParameters )
                 U1TXREG = rxval[i];         //Digit0
                 while(!U1STAbits.TRMT);
             }
+            else if(rxval[i] == '$')
+            {
+                U1TXREG = '$';              //Stop Sending
+                while(!U1STAbits.TRMT);
+            }
+            else if(rxval[i] == '@')
+            {
+                U1TXREG = '@';              //Stop Sending
+                while(!U1STAbits.TRMT);
+            }
         }
     }    
 }
