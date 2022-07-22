@@ -72,12 +72,17 @@ void radioThread( void *pvParameters )
             }
             else if(rxval[i] == '$')
             {
-                U1TXREG = '$';              //Stop Sending
+                U1TXREG = '$';              //Stop Sending Left Track
                 while(!U1STAbits.TRMT);
             }
             else if(rxval[i] == '@')
             {
-                U1TXREG = '@';              //Stop Sending
+                U1TXREG = '@';              //Stop Sending Right Track
+                while(!U1STAbits.TRMT);
+            }
+            else if(rxval[i] == '#')
+            {
+                U1TXREG = '#';              //Stop Sending Left Joystick
                 while(!U1STAbits.TRMT);
             }
         }

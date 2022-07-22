@@ -17,11 +17,18 @@ void stickThread( void *pvParameters )
     int  i = 0, j = 0, k = 0, sampleCount = 0;
     int stick = 0, stickPrev = 0;
     int m = 0, p = 0, breakTime = 0;
+    int delayPercentage = 0, numDelayLoops = 0;
     PHASE2 = 2303;
+    PDC2 = 173;
     while(1)
     {
         for(i = 0; i < 45; i++)
         {
+            if(rxval[i] == 'd')
+            {
+                delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                numDelayLoops = 500 + delayPercentage*25;
+            }
             if(rxval[i] == 's')
             {
                 stick = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
@@ -33,10 +40,30 @@ void stickThread( void *pvParameters )
                 //Min Duty Cycle is PDC = 92
                 if(sampleCount == SAMPLE_RATE)     //We're only going to take the SAMPLE_RATE sample
                 {
+                    if(stick > 0)
+                    {
+                    PDC2--;
+                        delay(numDelayLoops);
+                        if(PDC2 < 92)
+                        {
+                            PDC2 = 92;
+                        }
+                    }
+                    else if(stick < 0)
+                    {
+                        PDC2++;
+                        delay(numDelayLoops);
+                        if(PDC2 > 253)
+                        {
+                            PDC2 = 253;
+                        }
+                    }
+                    sampleCount = 0;
+                    /*
                     if(stickPrev <= stick)        //Direction
                     {
                         //Increment Duty Cycle from the previous stickPrev to stick
-                        for(m = stickPrev; m <= stick; m++)   
+                        for(m = stickPrev; m <= stick; m += 5)   
                         {
                             for(p = 0; p < 35; p++)
                             {
@@ -53,7 +80,7 @@ void stickThread( void *pvParameters )
                             }
                           //  PDC2 = (173 - m);
                             PDC2 = (int)(173 - .14*m);
-                            delay(LOOPS);
+                            delay(numDelayLoops);
                         }
                         if(breakTime == 0)
                         {
@@ -68,7 +95,7 @@ void stickThread( void *pvParameters )
                     else if(stickPrev > stick)    //Reverse
                     {
                         //Increment Duty Cycle from the previous boom to boom
-                        for(k = stickPrev; k > stick; k--)
+                        for(k = stickPrev; k > stick; k -= 5)
                         {
                             for(p = 0; p < 35; p++)
                             {
@@ -85,7 +112,7 @@ void stickThread( void *pvParameters )
                             }
                            // PDC2 = (173 - k);
                             PDC2 = (int)(173 - .14*k);
-                            delay(LOOPS);
+                            delay(numDelayLoops);
                         }
                         if(breakTime == 0)
                         {
@@ -97,6 +124,7 @@ void stickThread( void *pvParameters )
                         }
                         sampleCount = 0;
                     } 
+                    */
                 }
                 sampleCount++;  
                 break;

@@ -10,21 +10,29 @@
 #include "task.h"
 #include "FreeRTOSConfig.h"
 #include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 volatile extern char rxval[50];
 void boomThread( void *pvParameters )
 {
-    int  i = 0, j = 0, k = 0, sampleCount = 0;
-    int boom = 0, boomPrev = 0, boomDelta = 0, numDelayLoops = 0;
+    int  i = 0, k = 0, sampleCount = 0;
+    int boom = 0, boomPrev = 0;
     int m = 0;
     int p = 0, q = 0, breakTime = 0;
-    int kPrev = 0, mPrev = 0;
+    int delayPercentage = 0, numDelayLoops = 0;
     PHASE1 = 2303;
+    PDC1 = 173;
     while(1)
     {
         for(i = 0; i < 45; i++)
         {
-            if(rxval[i] == 'b')
+            if(rxval[i] == 'd')
+            {
+                delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                numDelayLoops = 500 + delayPercentage*25;
+            }
+            else if(rxval[i] == 'b')
             {
                 boom = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
                 //Motor Arithmitic Here
@@ -35,19 +43,38 @@ void boomThread( void *pvParameters )
                 //Min Duty Cycle is PDC = 92
                 if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
                 {
+                    if(boom > 0)
+                    {
+                        PDC1--;
+                        delay(numDelayLoops);
+                        if(PDC1 < 92)
+                        {
+                            PDC1 = 92;
+                        }
+                    }
+                    else if(boom < 0)
+                    {
+                        PDC1++;
+                        delay(numDelayLoops);
+                        if(PDC1 > 253)
+                        {
+                            PDC1 = 253;
+                        }
+                    }
+                    
+                    /*
                     if(boomPrev <= boom)        //Direction
                     {
-                        boomDelta = boom - boomPrev;
                         //Increment Duty Cycle from the previous boom to boom
-                        for(m = boomPrev; m <= boom; m++)   
+                        for(m = boomPrev; m <= boom; m += 5)   
                         {
-                            for(p = 0; p < 35; p++)
+                            for(p = 0; p < 45; p++)
                             {
                                 if(rxval[p] == '*')
                                 {
                                     breakTime = 1;
                                     break;
-                                }
+                                }   
                             }
                             if(breakTime == 1)
                             {
@@ -56,7 +83,7 @@ void boomThread( void *pvParameters )
                             }
                             //PDC1 = (173 - m);
                             PDC1 = (int)(173 - .14*m);
-                            delay(LOOPS);
+                            delay(numDelayLoops);
                         }
                         if(breakTime == 0)
                         {
@@ -71,9 +98,9 @@ void boomThread( void *pvParameters )
                     else if(boomPrev > boom)    //Reverse
                     {
                         //Increment Duty Cycle from the previous boom to boom
-                        for(k = boomPrev; k > boom; k--)
+                        for(k = boomPrev; k > boom; k -= 5)
                         {
-                            for(p = 0; p < 35; p++)
+                            for(p = 0; p < 45; p++)
                             {
                                 if(rxval[p] == '*')
                                 {
@@ -88,7 +115,7 @@ void boomThread( void *pvParameters )
                             }
                           //  PDC1 = (173 - k);
                             PDC1 = (int)(173 - .14*k);
-                            delay(LOOPS);
+                            delay(numDelayLoops);
                         }
                         if(breakTime == 0)
                         {
@@ -100,6 +127,8 @@ void boomThread( void *pvParameters )
                         }
                         sampleCount = 0;
                     } 
+                  */
+                    sampleCount = 0;
                 }
                 sampleCount++;  
                 break;
@@ -107,3 +136,52 @@ void boomThread( void *pvParameters )
         }
     }    
 }
+/*
+ *                     for(p = 0; p < 45; p++)
+                    {
+                        if(rxval[p] == '*')
+                        {
+                            breakTime = 1;
+                            break;
+                        }
+                    }
+                    if(boom == boomPrev || breakTime == 1)
+                    {
+                        if(breakTime == 1)
+                        {
+                            breakTime = 0;
+                        }
+                        break;
+                    }
+                    else if(boom > boomPrev)
+                    {
+                        PDC1--;
+                        delay(LOOPS);
+                        if(count >= -81)
+                        {
+                            count--;
+                        }
+                        if(count < -81)
+                        {
+                            PDC1 = 92;
+                        }
+                    }
+                    else if(boom < boomPrev)
+                    {
+                        PDC1++;
+                        delay(LOOPS);
+                        if(count <= 81)
+                        {
+                            count++;
+                        }
+                        if(count > 81)
+                        {
+                            PDC1 = 253;
+                        }
+                    }
+                    if(breakTime == 0)
+                    {
+                        boomPrev = boom;        //Save the previous value of boom
+                    }
+                    sampleCount = 0;
+ * */
