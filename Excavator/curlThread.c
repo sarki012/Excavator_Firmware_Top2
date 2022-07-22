@@ -12,11 +12,18 @@ void curlThread( void *pvParameters )
     int curl = 0, curlPrev = 0, curlDelta = 0;
     int curlAvgPrev = 0;
     int m = 0;
+    int delayPercentage = 0, numDelayLoops = 0;
     PHASE3 = 2303;
+    PDC3 = 173;
     while(1)
     {
         for(i = 0; i < 45; i++)
         {
+            if(rxval[i] == 'd')
+            {
+                delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                numDelayLoops = 50 + delayPercentage*3;
+            }
             if(rxval[i] == 'c')
             {
                 curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
@@ -28,6 +35,26 @@ void curlThread( void *pvParameters )
                 //Min Duty Cycle is PDC = 92
                 if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
                 {
+                    if(curl > 0)
+                    {
+                        PDC3++;
+                        delay(numDelayLoops);
+                        if(PDC3 > 253)
+                        {
+                            PDC3 = 253;
+                        }
+                    }
+                    else if(curl < 0)
+                    {
+                        PDC3--;
+                        delay(numDelayLoops);
+                        if(PDC3 < 92)
+                        {
+                            PDC3 = 92;
+                        }
+                    }
+                    sampleCount = 0;
+                    /*
                     if(curlPrev <= curl)        //Direction
                     {
                         //Increment Duty Cycle from the previous curl to curl
@@ -35,7 +62,7 @@ void curlThread( void *pvParameters )
                         {
                           //  PDC3 = (173 + m);
                             PDC3 = (int)(173 + .14*m);
-                            delay(LOOPS_CURL);
+                            delay(numDelayLoops);
                         }
                         curlPrev = curl;        //Save the previous value of curl
                         sampleCount = 0;
@@ -47,11 +74,11 @@ void curlThread( void *pvParameters )
                         {
                            // PDC3 = (173 + k);
                             PDC3 = (int)(173 + .14*k);
-                            delay(LOOPS_CURL);
+                            delay(numDelayLoops);
                         }
                         curlPrev = curl;        //Save the previous value of curl
                         sampleCount = 0;
-                    } 
+                    } */
                 }
                 sampleCount++;  
                 break;
