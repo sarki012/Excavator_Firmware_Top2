@@ -13,10 +13,62 @@ void curlThread( void *pvParameters )
     int curlAvgPrev = 0;
     int m = 0;
     int delayPercentage = 0, numDelayLoops = 0;
-    PHASE3 = 2303;
-    PDC3 = 173;
+    int delayReceived = 0;
+    PHASE3 = 36850;
+    PDC3 = 1500;
     while(1)
     {
+        for(i = 0; i < 45; i++)
+        {
+            if(rxval[i] == 'd')
+            {
+                delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                numDelayLoops = 50 + delayPercentage*5;
+                delayReceived = 1;
+            }
+            else if(rxval[i] == 'c')
+            {
+                curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                if(delayReceived)
+                {
+                    delayReceived = 0;
+                    break;
+                }
+             }
+        }
+        //numDelayLoops = (abs(boom)*(31 - .0526*abs(boom))) + delayPercentage*50;
+        //Motor Arithmitic Here
+        //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
+        //PHASE is always 2303 to give a rising edge every 20ms
+        //Max Duty Cycle is PDC = 253
+        //Neutral Duty Cycle is 173
+        //Min Duty Cycle is PDC = 92
+        //With Max Resolution:
+        //PHASEx = 36,850
+        //Max Duty Cycle is PDC = 4,054
+        //Neutral Duty Cycle is PDC = 3,685;
+        //Min Duty Cycle is PDC = 1,474
+        if(curl > 200)
+        {
+            PDC3++;
+            delay(numDelayLoops);
+            if(PDC3 > 4054)
+            {
+                PDC3 = 4054;
+            }
+
+        }
+        else if(curl < -200)
+        {
+            PDC3--;
+            delay(numDelayLoops);
+            if(PDC3 < 1474)
+            {
+                PDC3 = 1474;
+            }
+        }
+
+        /*
         for(i = 0; i < 45; i++)
         {
             if(rxval[i] == 'd')
@@ -35,7 +87,7 @@ void curlThread( void *pvParameters )
                 //Min Duty Cycle is PDC = 92
                 if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
                 {
-                    if(curl > 0)
+                    if(curl > 200)
                     {
                         PDC3++;
                         delay(numDelayLoops);
@@ -44,7 +96,7 @@ void curlThread( void *pvParameters )
                             PDC3 = 253;
                         }
                     }
-                    else if(curl < 0)
+                    else if(curl < -200)
                     {
                         PDC3--;
                         delay(numDelayLoops);
@@ -78,15 +130,11 @@ void curlThread( void *pvParameters )
                         }
                         curlPrev = curl;        //Save the previous value of curl
                         sampleCount = 0;
-                    } */
-                }
-                sampleCount++;  
-                break;
-            }
-        }
-
+                    } 
+        */
     } 
 }
+
 /*
 volatile extern char rxval[40];
 void curlTask( void *pvParameters )
