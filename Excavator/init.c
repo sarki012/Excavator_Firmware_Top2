@@ -121,9 +121,9 @@ void init(void)
     PTCONbits.SYNCSRC0 = 0;     //Synchronous Source is PTGO17
     PTCONbits.SYNCSRC1 = 1;
     PTCONbits.SYNCSRC2 = 0;
-    PTCON2bits.PCLKDIV0 = 0;      //110 divide by 64 prescaler *Adjust this depending on speed
+    PTCON2bits.PCLKDIV0 = 0;      //010 divide by 4 prescaler *Adjust this depending on resolution
     PTCON2bits.PCLKDIV1 = 1;
-    PTCON2bits.PCLKDIV2 = 1;
+    PTCON2bits.PCLKDIV2 = 0;
     PTCONbits.PTSIDL = 0;
     PTCONbits.EIPU = 0;
     PTCONbits.SYNCPOL = 0;

@@ -4,6 +4,7 @@
  *
  * Created on April 29, 2022, 4:43 PM
  */
+//    numDelayLoops = (abs(boom)*(31 - .0526*abs(boom))) + delayPercentage*10;
 #include <xc.h>
 #include <p33ep512mc502.h>
 #include "FreeRTOS.h"
@@ -17,171 +18,98 @@ volatile extern char rxval[50];
 void boomThread( void *pvParameters )
 {
     int  i = 0, k = 0, sampleCount = 0;
-    int boom = 0, boomPrev = 0;
+    int boom = 0, curl = 0;
     int m = 0;
     int p = 0, q = 0, breakTime = 0;
     int delayPercentage = 0, numDelayLoops = 0;
-    PHASE1 = 2303;
-    PDC1 = 173;
+    int delayReceived = 0;
+    int reverse = 0;
+    PHASE1 = 36850;
+   // PDC1 = 3100;
+    PDC1 = 2500;
     while(1)
     {
-        for(i = 0; i < 45; i++)
+      for(i = 0; i < 45; i++)
         {
             if(rxval[i] == 'd')
             {
                 delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
-                numDelayLoops = 500 + delayPercentage*25;
+                numDelayLoops = 1 +delayPercentage*5;
+                delayReceived = 1;
             }
             else if(rxval[i] == 'b')
             {
                 boom = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
+                if(delayReceived)
+                {
+                    delayReceived = 0;
+                    break;
+                }
+             }
+        }
+        //numDelayLoops = (abs(boom)*(31 - .0526*abs(boom))) + delayPercentage*50;
+        //Motor Arithmitic Here
+        //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
+        //PHASE is always 2303 to give a rising edge every 20ms
+        //Max Duty Cycle is PDC = 253
+        //Neutral Duty Cycle is 173
+        //Min Duty Cycle is PDC = 92
+        //With Max Resolution:
+        //PHASEx = 36,850
+        //Max Duty Cycle is PDC = 4,054
+        //Neutral Duty Cycle is PDC = 3,685;
+        //Min Duty Cycle is PDC = 1,474
+        if(boom > 200)
+        {
+            PDC1--;
+            delay(numDelayLoops);
+            if(PDC1 < 1474)
+            {
+                PDC1 = 1474;
+            }
+        }
+        else if(boom < -200)
+        {
+            PDC1++;
+            delay(numDelayLoops);
+            if(PDC1 > 4054)
+            {
+                PDC1 = 4054;
+            }
+        }   
+    }
+}    
+    /*
+     *                 numDelayLoops = (abs(boom)*(31 - .0526*abs(boom))) + delayPercentage*50;
                 //Motor Arithmitic Here
                 //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
                 //PHASE is always 2303 to give a rising edge every 20ms
                 //Max Duty Cycle is PDC = 253
                 //Neutral Duty Cycle is 173
                 //Min Duty Cycle is PDC = 92
+                //With Max Resolution:
+                //PHASEx = 36,850
+                //Max Duty Cycle is PDC = 4,054
+                //Neutral Duty Cycle is PDC = 3,685;
+                //Min Duty Cycle is PDC = 1,474
                 if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
                 {
-                    if(boom > 0)
+                    if(boom > 100)
                     {
                         PDC1--;
-                        delay(numDelayLoops);
-                        if(PDC1 < 92)
+                        delay(1000);
+                        if(PDC1 < 1474)
                         {
-                            PDC1 = 92;
+                            PDC1 = 1474;
                         }
                     }
-                    else if(boom < 0)
+                    else if(boom < -100)
                     {
                         PDC1++;
-                        delay(numDelayLoops);
-                        if(PDC1 > 253)
+                        delay(1000);
+                        if(PDC1 > 4054)
                         {
-                            PDC1 = 253;
+                            PDC1 = 4054;
                         }
                     }
-                    
-                    /*
-                    if(boomPrev <= boom)        //Direction
-                    {
-                        //Increment Duty Cycle from the previous boom to boom
-                        for(m = boomPrev; m <= boom; m += 5)   
-                        {
-                            for(p = 0; p < 45; p++)
-                            {
-                                if(rxval[p] == '*')
-                                {
-                                    breakTime = 1;
-                                    break;
-                                }   
-                            }
-                            if(breakTime == 1)
-                            {
-                                boomPrev = m;
-                                break;
-                            }
-                            //PDC1 = (173 - m);
-                            PDC1 = (int)(173 - .14*m);
-                            delay(numDelayLoops);
-                        }
-                        if(breakTime == 0)
-                        {
-                            boomPrev = boom;        //Save the previous value of boom
-                        }
-                        else if(breakTime == 1)
-                        {
-                            breakTime = 0;
-                        }
-                        sampleCount = 0;
-                    }
-                    else if(boomPrev > boom)    //Reverse
-                    {
-                        //Increment Duty Cycle from the previous boom to boom
-                        for(k = boomPrev; k > boom; k -= 5)
-                        {
-                            for(p = 0; p < 45; p++)
-                            {
-                                if(rxval[p] == '*')
-                                {
-                                    breakTime = 1;
-                                    break;
-                                }
-                            }
-                            if(breakTime == 1)
-                            {
-                                boomPrev = k;
-                                break;
-                            }
-                          //  PDC1 = (173 - k);
-                            PDC1 = (int)(173 - .14*k);
-                            delay(numDelayLoops);
-                        }
-                        if(breakTime == 0)
-                        {
-                            boomPrev = boom;        //Save the previous value of boom
-                        }
-                        else if(breakTime == 1)
-                        {
-                            breakTime = 0;
-                        }
-                        sampleCount = 0;
-                    } 
-                  */
-                    sampleCount = 0;
-                }
-                sampleCount++;  
-                break;
-            }
-        }
-    }    
-}
-/*
- *                     for(p = 0; p < 45; p++)
-                    {
-                        if(rxval[p] == '*')
-                        {
-                            breakTime = 1;
-                            break;
-                        }
-                    }
-                    if(boom == boomPrev || breakTime == 1)
-                    {
-                        if(breakTime == 1)
-                        {
-                            breakTime = 0;
-                        }
-                        break;
-                    }
-                    else if(boom > boomPrev)
-                    {
-                        PDC1--;
-                        delay(LOOPS);
-                        if(count >= -81)
-                        {
-                            count--;
-                        }
-                        if(count < -81)
-                        {
-                            PDC1 = 92;
-                        }
-                    }
-                    else if(boom < boomPrev)
-                    {
-                        PDC1++;
-                        delay(LOOPS);
-                        if(count <= 81)
-                        {
-                            count++;
-                        }
-                        if(count > 81)
-                        {
-                            PDC1 = 253;
-                        }
-                    }
-                    if(breakTime == 0)
-                    {
-                        boomPrev = boom;        //Save the previous value of boom
-                    }
-                    sampleCount = 0;
- * */
+     * */
