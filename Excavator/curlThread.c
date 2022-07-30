@@ -1,3 +1,9 @@
+/*
+ * File:   curlThread.c
+ * Author: Erik Sarkinen
+ *
+ * Created on July 30th, 2022, at 11:05 AM
+ */
 #include <xc.h>
 #include <p33ep512mc502.h>
 #include "FreeRTOS.h"
@@ -5,225 +11,69 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 
-volatile extern char rxval[50];
+volatile extern char rxval[50];     //The UART receive array which holds the data sent 
+                                    //via Bluetooth from the tablet
 void curlThread( void *pvParameters )
 {
-    int  i = 0, j = 0, k = 0, sampleCount = 0, curlAvg = 0;
-    int curl = 0, curlPrev = 0, curlDelta = 0;
-    int curlAvgPrev = 0;
-    int m = 0;
-    int delayPercentage = 0, numDelayLoops = 0;
+    int  i = 0;
+    int curl = 0;
+    int delayPercentage = 0;
+    int numDelayLoops = 0;
     int delayReceived = 0;
-    PHASE3 = 36850;
-    PDC3 = 1500;
+    PHASE3 = 36850;         //PHASEx is always 36,850 for a 50Hz pulse
+    PDC3 = 1500;            //Duty cycle register. Starting duty cycle is 1500.
     while(1)
     {
         for(i = 0; i < 45; i++)
         {
+            //This means the next character is a +/- followed by three characters
+            //which are passed to charToInt which returns an integer value
+            //delayPercentage is a number between 0-100 that will speed up or slow down the boom
             if(rxval[i] == 'd')
             {
                 delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
-                numDelayLoops = 50 + delayPercentage*5;
-                delayReceived = 1;
+                numDelayLoops = delayPercentage;        //Number of delay loops passed to delay() function after each motor update
+                delayReceived = 1;      //This means next time we get a 'c' we break from the loop
             }
             else if(rxval[i] == 'c')
             {
+                //This means the next character is a +/- followed by three characters
+                //which are passed to charToInt which returns an integer value
+                //curl holds the pixels in the x-direction from the bottom right joystick
                 curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
                 if(delayReceived)
                 {
+                     //We've received stick data and delay data. Break from loop
                     delayReceived = 0;
                     break;
                 }
              }
         }
-        //numDelayLoops = (abs(boom)*(31 - .0526*abs(boom))) + delayPercentage*50;
         //Motor Arithmitic Here
-        //PHASE3 and PDC2 are for PWM3L, the bucket boom motor
-        //PHASE is always 2303 to give a rising edge every 20ms
-        //Max Duty Cycle is PDC = 253
-        //Neutral Duty Cycle is 173
-        //Min Duty Cycle is PDC = 92
+        //PHASE3 and PDC3 are for the bucket curl motor
         //With Max Resolution:
         //PHASEx = 36,850
         //Max Duty Cycle is PDC = 4,054
         //Neutral Duty Cycle is PDC = 3,685;
         //Min Duty Cycle is PDC = 1,474
-        if(curl > 200)
+        if(curl > 200)      //We don't touch the motors if the thumb press is in the circle
         {
-            PDC3++;
+            PDC3++;         //Incrementing the duty cycle rolls the bucket out
             delay(numDelayLoops);
             if(PDC3 > 4054)
             {
-                PDC3 = 4054;
+                PDC3 = 4054;        //We don't let PDC1 get greater than 4054
             }
 
         }
         else if(curl < -200)
         {
-            PDC3--;
+            PDC3--;         //Decrementing the duty cycle curls the bucket
             delay(numDelayLoops);
             if(PDC3 < 1474)
             {
-                PDC3 = 1474;
+                PDC3 = 1474;        //We don't let PDC3 get less than 1,474
             }
         }
-
-        /*
-        for(i = 0; i < 45; i++)
-        {
-            if(rxval[i] == 'd')
-            {
-                delayPercentage = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
-                numDelayLoops = 50 + delayPercentage*3;
-            }
-            if(rxval[i] == 'c')
-            {
-                curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3], rxval[i+4]);
-                //Motor Arithmitic Here
-                //PHASE3 and PDC3 are for PWM3L, the bucket curl motor
-                //PHASE is always 2303 to give a rising edge every 20ms
-                //Max Duty Cycle is PDC = 253
-                //Neutral Duty Cycle is 173
-                //Min Duty Cycle is PDC = 92
-                if(sampleCount == SAMPLE_RATE)     //We're only going to take the 100th sample
-                {
-                    if(curl > 200)
-                    {
-                        PDC3++;
-                        delay(numDelayLoops);
-                        if(PDC3 > 253)
-                        {
-                            PDC3 = 253;
-                        }
-                    }
-                    else if(curl < -200)
-                    {
-                        PDC3--;
-                        delay(numDelayLoops);
-                        if(PDC3 < 92)
-                        {
-                            PDC3 = 92;
-                        }
-                    }
-                    sampleCount = 0;
-                    /*
-                    if(curlPrev <= curl)        //Direction
-                    {
-                        //Increment Duty Cycle from the previous curl to curl
-                        for(m = curlPrev; m <= curl; m++)   
-                        {
-                          //  PDC3 = (173 + m);
-                            PDC3 = (int)(173 + .14*m);
-                            delay(numDelayLoops);
-                        }
-                        curlPrev = curl;        //Save the previous value of curl
-                        sampleCount = 0;
-                    }
-                    else if(curlPrev > curl)    //Reverse
-                    {
-                        //Increment Duty Cycle from the previous curl to curl
-                        for(k = curlPrev; k > curl; k--)
-                        {
-                           // PDC3 = (173 + k);
-                            PDC3 = (int)(173 + .14*k);
-                            delay(numDelayLoops);
-                        }
-                        curlPrev = curl;        //Save the previous value of curl
-                        sampleCount = 0;
-                    } 
-        */
     } 
 }
-
-/*
-volatile extern char rxval[40];
-void curlTask( void *pvParameters )
-{
-    int  i = 0, j = 0, k = 0, sampleCount = 0, curlAvg = 0;
-    int curl = 0, curlPrev = 0, curlDelta = 0;
-    int curlAvgPrev = 0;
-    int m = 0;
-    int breakTime = 0;
-    PHASE3 = 2303;
-    while(1)
-    {
-        for(i = 0; i < 35; i++)
-        {
-            if(rxval[i] == '*')
-            {
-                break;
-            }
-            if(rxval[i] == 'c')
-            {
-                curl = charToInt(rxval[i+1], rxval[i+2], rxval[i+3]);
-                //Motor Arithmitic Here
-                //PHASE3 and PDC3 are for PWM3L, the bucket curl motor
-                //PHASE is always 2303 to give a rising edge every 20ms
-                //Max Duty Cycle is PDC = 253
-                //Neutral Duty Cycle is 173
-                //Min Duty Cycle is PDC = 92
-                if(sampleCount == SAMPLE_RATE)     //We're only going to take the SAMPLE_RATE sample
-                {
-                    if(curlPrev <= curl)        //Direction
-                    {
-                        //Increment Duty Cycle from the previous curl to curl
-                        for(m = curlPrev; m <= curl; m++)   
-                        {
-                            PDC3 = (173 + m);
-                            for(j = 0; j < LOOPS_CURL; j++)
-                            {
-                                if(rxval[m] == '*')
-                                {
-                                    breakTime = 1;
-                                }
-                                m++;
-                                if(m == 35)
-                                {
-                                    m = 0;
-                                }
-                            }
-                            if(breakTime)
-                            {
-                                breakTime = 0;
-                                break;
-                            }
-                        }
-                        curlPrev = curl;        //Save the previous value of curl
-                        sampleCount = 0;
-                    }
-                    else if(curlPrev > curl)    //Reverse
-                    {
-                        //Increment Duty Cycle from the previous curl to curl
-                        for(k = curlPrev; k > curl; k--)
-                        {
-                            PDC3 = (173 + k);
-                            for(j = 0; j < LOOPS_CURL; j++)
-                            {
-                                if(rxval[m] == '*')
-                                {
-                                    breakTime = 1;
-                                }
-                                m++;
-                                if(m == 35)
-                                {
-                                    m = 0;
-                                }
-                            }
-                            if(breakTime)
-                            {
-                                breakTime = 0;
-                                break;
-                            }
-                        }
-                        curlPrev = curl;        //Save the previous value of curl
-                        sampleCount = 0;
-                    } 
-                }
-                sampleCount++;  
-                break;
-            }
-        }
-
-    } 
-}
- * */

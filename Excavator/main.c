@@ -1,6 +1,6 @@
 /*
  * File:   main.c
- * Author: Erik
+ * Author: Erik Sarkinen
  *
  * Created on May 5, 2022, 1:46 PM
  */
@@ -49,12 +49,14 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 
-volatile char rxval[50];
+volatile char rxval[50];     //The UART receive array which holds the data sent 
+                             //via Bluetooth from the tablet
 int x = 0;
+//UART 2 receive interrupt, receiving characters from the Bluetooth Module sent from the Android tablet 
 void __attribute__((__interrupt__, auto_psv)) _U2RXInterrupt(void)             
 {
-    IFS1bits.U2RXIF = 0;
-    rxval[x] = U2RXREG;
+    IFS1bits.U2RXIF = 0;        //Clear the interrupt flag
+    rxval[x] = U2RXREG;         //Add the value in the receive register to the receive array
     x++;
     if(x == 50)
     {  
@@ -71,16 +73,14 @@ void main(void) {
     int i = 0;
     for(i = 0; i < 50; i++)
     {
-        rxval[i] = 0;
+        rxval[i] = 0;       //Initialize the receive array to all 0's
     }
-    init();
-    
-	/* Create the test tasks defined within this file. */
-	xTaskCreate( boomThread, "Boom", 512, NULL, 1, NULL );
-    xTaskCreate( curlThread, "Curl", 512, NULL, 1, NULL );
-    xTaskCreate( stickThread, "Stick", 512, NULL, 1, NULL );
-    xTaskCreate( radioThread, "Radio", 512, NULL, 1, NULL );
-	/* Finally start the scheduler. */
+    init();     //Setup clock, UART, and PWMs
+	xTaskCreate( boomThread, "Boom", 512, NULL, 1, NULL );      //Thread that controls the boom
+    xTaskCreate( curlThread, "Curl", 512, NULL, 1, NULL );      //Thread that controls the bucket
+    xTaskCreate( stickThread, "Stick", 512, NULL, 1, NULL );    //Thread that controls the stick
+    xTaskCreate( radioThread, "Radio", 512, NULL, 1, NULL );    //Thread that controls the radio to send information to the bottom circuit board
+	//Start the scheduler
 	vTaskStartScheduler();
 
 	/* Will only reach here if there is insufficient heap available to start

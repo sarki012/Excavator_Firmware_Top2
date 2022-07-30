@@ -1,6 +1,6 @@
 /*
  * File:   radioThread.c
- * Author: Erik
+ * Author: Erik Sarkinen
  *
  * Created on April 29, 2022, 4:43 PM
  */
@@ -11,7 +11,8 @@
 #include "FreeRTOSConfig.h"
 #include "main.h"
 
-volatile extern char rxval[50];
+volatile extern char rxval[50];     //The UART receive array which holds the data sent 
+                                    //via Bluetooth from the tablet
 void radioThread( void *pvParameters )
 {
     int i = 0;
@@ -19,70 +20,72 @@ void radioThread( void *pvParameters )
     {
         for(i = 0; i < 45; i++)
         {
+            //This loop reads the receive array and hands the characters to the radio
+            //Uart 1 is hooked to the radio
             if(rxval[i] == 'l')
             {
-                U1TXREG = 'l';              //Left Track
+                U1TXREG = 'l';              //Send 'l' for left Track
                 while(!U1STAbits.TRMT);     
                 i++;
-                U1TXREG = rxval[i];         //+/-
+                U1TXREG = rxval[i];         //Send +/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];         //Digit2
+                U1TXREG = rxval[i];         //Send digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];         //Digit1
+                U1TXREG = rxval[i];         //Send digit1
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];         //Digit0
+                U1TXREG = rxval[i];         //Send digit0
                 while(!U1STAbits.TRMT); 
             }
             else if(rxval[i] == 'r')
             {
-                U1TXREG = 'r';              //Right Track
+                U1TXREG = 'r';              //Send 'r' for right Track
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];         //+/-
+                U1TXREG = rxval[i];         //Send +/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];         //Digit2
+                U1TXREG = rxval[i];         //Send digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];         //Digit1
+                U1TXREG = rxval[i];         //Send digit1
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];         //Digit0
+                U1TXREG = rxval[i];         //Send digit0
                 while(!U1STAbits.TRMT); 
             }
             else if(rxval[i] == 'o')
             {
-                U1TXREG = 'o';              //Orbit (Rotate)
+                U1TXREG = 'o';              //Sned 'o' for Orbit (Rotate)
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];         //+/-
+                U1TXREG = rxval[i];         //Send +/-
                 while(!U1STAbits.TRMT);
                 i++;
-                U1TXREG = rxval[i];         //Digit2
+                U1TXREG = rxval[i];         //Send digit2
                 while(!U1STAbits.TRMT); 
                 i++;
-                U1TXREG = rxval[i];         //Digit1
+                U1TXREG = rxval[i];         //Send digit1
                 while(!U1STAbits.TRMT);  
                 i++;
-                U1TXREG = rxval[i];         //Digit0
+                U1TXREG = rxval[i];         //Send digit0
                 while(!U1STAbits.TRMT);
             }
             else if(rxval[i] == '$')
             {
-                U1TXREG = '$';              //Stop Sending Left Track
+                U1TXREG = '$';              //Send stop sending left track
                 while(!U1STAbits.TRMT);
             }
             else if(rxval[i] == '@')
             {
-                U1TXREG = '@';              //Stop Sending Right Track
+                U1TXREG = '@';              //Send stop sending right track
                 while(!U1STAbits.TRMT);
             }
             else if(rxval[i] == '#')
             {
-                U1TXREG = '#';              //Stop Sending Left Joystick
+                U1TXREG = '#';              //Send stop sending left joystick
                 while(!U1STAbits.TRMT);
             }
         }
