@@ -5,7 +5,7 @@
  * Created on September 21, 2021, 7:13 PM
  */
 #include "main.h"
-
+//d3 = +/-, d2 is the hundredths place, d1 is the tenths place, and d0 is ones place
 int charToInt(char d3, char d2, char d1, char d0)
 {
     int integer = 0, negative = 0;

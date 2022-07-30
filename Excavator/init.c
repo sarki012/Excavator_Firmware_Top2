@@ -187,12 +187,7 @@ void init(void)
     IOCON1bits.OVRDAT = 0;
     IOCON2bits.OVRDAT = 0;
     IOCON3bits.OVRDAT = 0;
-    
     PTCONbits.SEIEN = 0;        //Special event interrupt disabled
-    
-
-    //PHASE1 = 1999999;
-    //PHASE2 = 1999999;
     DTR1 = 0;
     DTR2 = 0;
     ALTDTR1 = 0;
@@ -201,11 +196,6 @@ void init(void)
     FCLCON2 = 0x0000;
     FCLCON1bits.FLTMOD = 3;
     FCLCON2bits.FLTMOD = 3;
- //   TRIG1 = 1568;
- //   TRIG2 = 1568;
-    
- //   TRGCON1bits.TRGDIV = 7;     //Trigger output for every 8th trigger event
- //   TRGCON2bits.TRGDIV = 7;     //Trigger output for every 8th trigger event
     PTCONbits.PTEN = 1;         //PWM Module is enabled
 
 
